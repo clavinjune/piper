@@ -8,9 +8,14 @@ import (
 	"github.com/clavinjune/piper"
 )
 
-func addOne(m *piper.M[int]) int {
+func addOne(m *piper.M[int]) (int, error) {
 	time.Sleep(time.Second)
-	return m.In + 1
+	return m.In + 1, nil
+}
+
+func timesTwo(m *piper.M[int]) (int, error) {
+	time.Sleep(time.Second)
+	return m.In + 1, nil
 }
 
 func main() {
@@ -19,9 +24,10 @@ func main() {
 
 	start := time.Now()
 	out := piper.New(context.Background(), totalWorker, nil, addOne).Do(ch)
+	out2 := piper.New(context.Background(), totalWorker, nil, timesTwo).Do(out)
 
-	for o := range out {
-		log.Println(o)
+	for o := range out2 {
+		log.Println(o.Data, o.Err)
 	}
 
 	log.Println(time.Since(start))

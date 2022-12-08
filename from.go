@@ -1,12 +1,14 @@
 package piper
 
-func From[T any](n ...T) (<-chan T, int) {
-	out := make(chan T)
+func From[T any](n ...T) (<-chan *W[T], int) {
+	out := make(chan *W[T])
 	go func() {
 		defer close(out)
 
 		for _, i := range n {
-			out <- i
+			out <- &W[T]{
+				Data: i,
+			}
 		}
 	}()
 

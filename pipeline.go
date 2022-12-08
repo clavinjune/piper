@@ -6,14 +6,15 @@ import (
 )
 
 type P[IN, OUT any] struct {
+	_           struct{}
 	ctx         context.Context
 	totalWorker int
 	data        map[string]any
 	fn          F[IN, OUT]
 }
 
-func (p *P[IN, OUT]) Do(in <-chan IN) <-chan OUT {
-	out := make(chan OUT)
+func (p *P[IN, OUT]) Do(in <-chan *W[IN]) <-chan *W[OUT] {
+	out := make(chan *W[OUT])
 
 	wg := new(sync.WaitGroup)
 	wg.Add(p.totalWorker)
@@ -27,11 +28,22 @@ func (p *P[IN, OUT]) Do(in <-chan IN) <-chan OUT {
 					case <-p.ctx.Done():
 						break
 					default:
-						out <- p.fn(&M[IN]{
+						if n.Err != nil {
+							out <- &W[OUT]{
+								Err: n.Err,
+							}
+						}
+
+						o, err := p.fn(&M[IN]{
 							Ctx:  p.ctx,
-							In:   n,
+							In:   n.Data,
 							Data: p.data,
 						})
+
+						out <- &W[OUT]{
+							Data: o,
+							Err:  err,
+						}
 					}
 				}
 			}()
