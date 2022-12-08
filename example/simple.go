@@ -15,7 +15,7 @@ func addOne(m *piper.M[int]) (int, error) {
 
 func timesTwo(m *piper.M[int]) (int, error) {
 	time.Sleep(time.Second)
-	return m.In + 1, nil
+	return m.In * 2, nil
 }
 
 func main() {
