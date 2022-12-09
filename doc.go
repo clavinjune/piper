@@ -12,7 +12,5 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package piper is a simple package to create your reactive pipeline on Golang
 package piper
-
-// F is the function that needs to be passed on the pipeline
-type F[IN, OUT any] func(*M[IN]) (OUT, error)
