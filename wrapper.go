@@ -6,6 +6,9 @@ type W[T any] struct {
 	Err  error
 }
 
-func (r *W[T]) Error() string {
-	return r.Err.Error()
+func (w *W[T]) Error() string {
+	if w.Err != nil {
+		return w.Err.Error()
+	}
+	return ""
 }
