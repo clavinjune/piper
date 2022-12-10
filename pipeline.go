@@ -24,7 +24,7 @@ type P[IN, OUT any] struct {
 	_           struct{}
 	ctx         context.Context
 	totalWorker int
-	data        map[string]any
+	data        *sync.Map
 	fn          F[IN, OUT]
 }
 
@@ -72,9 +72,9 @@ func (p *P[IN, OUT]) workDefaultAction(n *W[IN], out chan<- *W[OUT]) {
 	}
 
 	o, err := p.fn(&M[IN]{
-		Ctx:  p.ctx,
-		In:   n.Data,
-		Data: p.data,
+		Map: p.data,
+		Ctx: p.ctx,
+		In:  n.Data,
 	})
 
 	out <- &W[OUT]{
@@ -85,10 +85,15 @@ func (p *P[IN, OUT]) workDefaultAction(n *W[IN], out chan<- *W[OUT]) {
 
 // New creates new pipeline
 func New[IN, OUT any](ctx context.Context, totalWorker int, data map[string]any, fn F[IN, OUT]) *P[IN, OUT] {
+	d := new(sync.Map)
+	for k, v := range data {
+		d.Store(k, v)
+	}
+
 	return &P[IN, OUT]{
 		ctx:         ctx,
 		totalWorker: totalWorker,
-		data:        data,
+		data:        d,
 		fn:          fn,
 	}
 }

@@ -25,19 +25,19 @@ import (
 )
 
 func add65(m *piper.M[int]) (int, error) {
-	name, _ := m.Data["name"].(string)
+	name, _ := m.Load("name")
 	log.Printf("%s: add65(%d)", name, m.In)
 	return m.In + 65, nil
 }
 
 func toRune(m *piper.M[int]) (rune, error) {
-	name, _ := m.Data["name"].(string)
+	name, _ := m.Load("name")
 	log.Printf("%s: toRune(%d)", name, m.In)
 	return rune(m.In), nil
 }
 
 func toString(m *piper.M[rune]) (string, error) {
-	name, _ := m.Data["name"].(string)
+	name, _ := m.Load("name")
 	log.Printf("%s: toString(%#q)", name, m.In)
 
 	if m.In > 'Z' {
