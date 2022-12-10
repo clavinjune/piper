@@ -16,12 +16,13 @@ package piper
 
 import (
 	"context"
+	"sync"
 )
 
 // M holds all the metadata to be passed to F
 type M[IN any] struct {
-	_    struct{}
-	Ctx  context.Context
-	In   IN
-	Data map[string]any
+	*sync.Map
+	_   struct{}
+	Ctx context.Context
+	In  IN
 }
