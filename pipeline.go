@@ -37,33 +37,7 @@ func (p *P[IN, OUT]) Do(in <-chan *W[IN]) <-chan *W[OUT] {
 
 	go func() {
 		for i := 0; i < p.totalWorker; i++ {
-			go func() {
-				defer wg.Done()
-			ChannelReader:
-				for n := range in {
-					select {
-					case <-p.ctx.Done():
-						break ChannelReader
-					default:
-						if n.Err != nil {
-							out <- &W[OUT]{
-								Err: n.Err,
-							}
-						}
-
-						o, err := p.fn(&M[IN]{
-							Ctx:  p.ctx,
-							In:   n.Data,
-							Data: p.data,
-						})
-
-						out <- &W[OUT]{
-							Data: o,
-							Err:  err,
-						}
-					}
-				}
-			}()
+			go p.work(wg, in, out)
 		}
 	}()
 
@@ -73,6 +47,39 @@ func (p *P[IN, OUT]) Do(in <-chan *W[IN]) <-chan *W[OUT] {
 	}()
 
 	return out
+}
+
+func (p *P[IN, OUT]) work(wg *sync.WaitGroup, in <-chan *W[IN], out chan<- *W[OUT]) {
+	defer wg.Done()
+
+ChannelReader:
+	for n := range in {
+		select {
+		case <-p.ctx.Done():
+			break ChannelReader
+		default:
+			p.workDefaultAction(n, out)
+		}
+	}
+}
+
+func (p *P[IN, OUT]) workDefaultAction(n *W[IN], out chan<- *W[OUT]) {
+	if n.Err != nil {
+		out <- &W[OUT]{
+			Err: n.Err,
+		}
+	}
+
+	o, err := p.fn(&M[IN]{
+		Ctx:  p.ctx,
+		In:   n.Data,
+		Data: p.data,
+	})
+
+	out <- &W[OUT]{
+		Data: o,
+		Err:  err,
+	}
 }
 
 // New creates new pipeline
