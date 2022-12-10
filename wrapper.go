@@ -14,6 +14,10 @@
 
 package piper
 
+import (
+	"fmt"
+)
+
 // W wraps the data passed on each pipeline so user can handle the Error
 type W[T any] struct {
 	_    struct{}
@@ -26,10 +30,18 @@ func (w *W[T]) Unwrap() error {
 	return w.Err
 }
 
-// Error is implemented to satisfy errors interface
+// Error is implemented to satisfy error interface
 func (w *W[T]) Error() string {
 	if w.Err != nil {
 		return w.Err.Error()
 	}
 	return ""
+}
+
+// String is implemented to satisfy fmt.Stringer interface
+func (w *W[T]) String() string {
+	if w.Err != nil {
+		return ""
+	}
+	return fmt.Sprintf("%#v", w.Data)
 }
