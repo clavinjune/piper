@@ -14,14 +14,38 @@
 
 package piper
 
-import (
-	"context"
-)
+import "sync"
 
-// M holds all the metadata to be passed to F
-type M[IN any] struct {
-	_    struct{}
-	Ctx  context.Context
-	In   IN
-	Data map[string]any
+// Merge merges channels to one
+func Merge[T any](chs ...<-chan *W[T]) <-chan *W[T] {
+	out := make(chan *W[T])
+	wg := new(sync.WaitGroup)
+	wg.Add(len(chs))
+
+	work := func(wg *sync.WaitGroup, ch <-chan *W[T], o chan<- *W[T]) {
+		defer wg.Done()
+		for c := range ch {
+			o <- c
+		}
+	}
+
+	for i := range chs {
+		go work(wg, chs[i], out)
+	}
+
+	go func() {
+		wg.Wait()
+		close(out)
+	}()
+
+	return out
+}
+
+// firstOrMerge helps to avoid merging operation if there's only 1 input
+func firstOrMerge[T any](chs ...<-chan *W[T]) <-chan *W[T] {
+	if len(chs) == 1 {
+		return chs[0]
+	}
+
+	return Merge(chs...)
 }

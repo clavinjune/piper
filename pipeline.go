@@ -29,7 +29,8 @@ type P[IN, OUT any] struct {
 }
 
 // Do executes the pipeline
-func (p *P[IN, OUT]) Do(in <-chan *W[IN]) <-chan *W[OUT] {
+func (p *P[IN, OUT]) Do(ins ...<-chan *W[IN]) <-chan *W[OUT] {
+	in := firstOrMerge(ins...)
 	out := make(chan *W[OUT])
 
 	wg := new(sync.WaitGroup)

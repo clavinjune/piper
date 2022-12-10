@@ -15,7 +15,8 @@
 package piper
 
 // To converts back the channel of *W[T] to a list
-func To[T any](ch <-chan *W[T]) []*W[T] {
+func To[T any](chs ...<-chan *W[T]) []*W[T] {
+	ch := firstOrMerge(chs...)
 	result := make([]*W[T], 0)
 
 	for c := range ch {
@@ -26,7 +27,8 @@ func To[T any](ch <-chan *W[T]) []*W[T] {
 }
 
 // ToData converts back the channel of *W[T] to a list only containing the non-error
-func ToData[T any](ch <-chan *W[T]) []T {
+func ToData[T any](chs ...<-chan *W[T]) []T {
+	ch := firstOrMerge(chs...)
 	result := make([]T, 0)
 
 	for c := range ch {
