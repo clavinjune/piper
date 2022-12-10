@@ -17,6 +17,6 @@ go get -u github.com/clavinjune/piper
 
 ## Roadmap
 
-- [x] Add Fan-In / Fan-Out
 - [ ] Add CONTRIBUTING.md
 - [ ] Add Custom Issues
+- [ ] Add Tests
