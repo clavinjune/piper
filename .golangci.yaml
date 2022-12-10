@@ -13,7 +13,7 @@
 # limitations under the License.
 
 run:
-  go: '1.19.3'
+  go: 1.19.4
   # timeout for analysis, e.g. 30s, 5m, default is 1m
   deadline: 5m
 
