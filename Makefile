@@ -15,11 +15,11 @@
 include tools.mk
 
 lint:
-	@go run $(GOLANGCI_LINT) run
 	@go vet ./...
 	@go fix ./...
 	@go run $(GOIMPORTS) -w .
 	@go mod tidy
 	@gofmt -w -s .
-	@go run $(LICENSER) apply -r "clavinjune/piper" 2> /dev/null
+	@go run $(GOLANGCI_LINT) run
 	@go run $(GOVULNCHECK) ./...
+	@go run $(LICENSER) apply -r "clavinjune/piper" 2> /dev/null
