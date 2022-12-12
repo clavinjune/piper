@@ -19,9 +19,18 @@ import (
 	"sync"
 )
 
+const (
+	defaultTotalWorker = 1
+)
+
+var (
+	defaultContext = context.Background()
+)
+
 // P is the pipeline
 type P[IN, OUT any] struct {
 	_           struct{}
+	filterError bool
 	ctx         context.Context
 	totalWorker int
 	data        *sync.Map
@@ -66,6 +75,9 @@ ChannelReader:
 
 func (p *P[IN, OUT]) workDefaultAction(n *W[IN], out chan<- *W[OUT]) {
 	if n.Err != nil {
+		if p.filterError {
+			return
+		}
 		out <- &W[OUT]{
 			Err: n.Err,
 		}
@@ -77,6 +89,10 @@ func (p *P[IN, OUT]) workDefaultAction(n *W[IN], out chan<- *W[OUT]) {
 		In:  n.Data,
 	})
 
+	if err != nil && p.filterError {
+		return
+	}
+
 	out <- &W[OUT]{
 		Data: o,
 		Err:  err,
@@ -84,16 +100,40 @@ func (p *P[IN, OUT]) workDefaultAction(n *W[IN], out chan<- *W[OUT]) {
 }
 
 // New creates new pipeline
-func New[IN, OUT any](ctx context.Context, totalWorker int, data map[string]any, fn F[IN, OUT]) *P[IN, OUT] {
-	d := new(sync.Map)
-	for k, v := range data {
-		d.Store(k, v)
+func New[IN, OUT any](fn F[IN, OUT], opts ...*Opt) *P[IN, OUT] {
+	p := &P[IN, OUT]{
+		fn: fn,
 	}
 
-	return &P[IN, OUT]{
-		ctx:         ctx,
-		totalWorker: totalWorker,
-		data:        d,
-		fn:          fn,
+	if len(opts) == 0 {
+		return p
 	}
+
+	p.fill(opts[0])
+	if p.totalWorker == 0 {
+		p.totalWorker = defaultTotalWorker
+	}
+
+	if p.ctx == nil {
+		p.ctx = defaultContext
+	}
+
+	return p
+}
+
+func (p *P[IN, OUT]) fill(o *Opt) {
+	if o == nil {
+		return
+	}
+
+	p.ctx = o.Context
+	p.totalWorker = o.TotalWorker
+	p.filterError = o.FilterError
+
+	m := new(sync.Map)
+	for k, v := range o.Data {
+		m.Store(k, v)
+	}
+
+	p.data = m
 }

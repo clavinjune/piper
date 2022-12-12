@@ -65,10 +65,16 @@ func main() {
 		"name": "piper simple example",
 	}
 
+	popt := &piper.Opt{
+		Context:     ctx,
+		Data:        m,
+		TotalWorker: totalWorker,
+		FilterError: true,
+	}
 	// create pipeline functions
-	addOneFn := piper.New(ctx, totalWorker, m, add65)
-	toRunFn := piper.New(ctx, totalWorker, m, toRune)
-	toStringFn := piper.New(ctx, totalWorker, m, toString)
+	addOneFn := piper.New(add65, popt)
+	toRunFn := piper.New(toRune, popt)
+	toStringFn := piper.New(toString, popt)
 
 	start := time.Now()
 
